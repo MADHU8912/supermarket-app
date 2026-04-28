@@ -1,22 +1,37 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "yourdockerhubusername/supermarket-app"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Building project...'
+                sh "docker build -t $DOCKER_IMAGE:latest ."
             }
         }
 
-        stage('Test') {
+        stage('Docker Login') {
             steps {
-                echo 'Running tests...'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                    echo $PASS | docker login -u $USER --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh "docker push $DOCKER_IMAGE:latest"
             }
         }
     }
