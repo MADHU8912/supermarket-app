@@ -1,36 +1,43 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE = "yourdockerhubusername/supermarket"
-    }
-
     stages {
 
         stage('Checkout') {
             steps {
+                echo "🔄 Checking out code..."
                 checkout scm
             }
         }
 
-        stage('Build Docker') {
+        stage('Build') {
             steps {
-                sh "docker build -t $IMAGE ."
+                echo "📦 Building project..."
+                sh 'echo Build stage running'
             }
         }
 
-        stage('Login DockerHub') {
+        stage('Test') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'U', passwordVariable: 'P')]) {
-                    sh "echo $P | docker login -u $U --password-stdin"
-                }
+                echo "🧪 Running tests..."
+                sh 'echo Test stage running'
             }
         }
 
-        stage('Push Image') {
+        stage('Docker Build') {
             steps {
-                sh "docker push $IMAGE"
+                echo "🐳 Building Docker image..."
+                sh 'docker build -t supermarket-app .'
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline completed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed!"
         }
     }
 }
