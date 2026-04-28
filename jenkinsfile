@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        IMAGE = "yourdockerhub/supermarket-app"
+        IMAGE = "yourdockerhub/supermarket-backend"
     }
 
     stages {
 
-        stage('Clone Code') {
+        stage('Git Checkout') {
             steps {
                 git 'https://github.com/YOUR_USERNAME/supermarket-app.git'
             }

@@ -2,20 +2,22 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Test route
-app.get("/", (req, res) => {
-  res.send("🏪 Supermarket Backend Running");
-});
+// IMPORT ROUTES
+const authRoutes = require("./routes/authRoutes");
+const productRoutes = require("./routes/productRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
-// Sample products API
-app.get("/products", (req, res) => {
-  res.json([
-    { id: 1, name: "Rice", price: 60 },
-    { id: 2, name: "Sugar", price: 40 }
-  ]);
+// REGISTER ROUTES
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
+
+app.get("/", (req, res) => {
+  res.send("Supermarket Backend Running");
 });
 
 app.listen(5000, () => {
