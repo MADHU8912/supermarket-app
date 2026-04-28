@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supermarket</title>
+</head>
+<body>
+
+<h1>🛒 Supermarket Products</h1>
+
+<div id="products"></div>
+
+<button onclick="placeOrder()">Place Order</button>
+
+<script>
+let cart = [];
+const API = "http://localhost:3000";
+
+fetch(`${API}/api/products`)
+  .then(res => res.json())
+  .then(data => console.log(data));
+.then(res => res.json())
+.then(data => {
+    document.getElementById("products").innerHTML =
+        data.map(p => `
+            <p>
+              ${p.name} - ₹${p.price}
+              <button onclick='addToCart(${JSON.stringify(p)})'>Add</button>
+            </p>
+        `).join("");
+});
+
+function addToCart(item) {
+    cart.push(item);
+    alert(item.name + " added to cart");
+}
+
+function placeOrder() {
+    fetch("http://localhost:3000/api/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Order ID: " + data.orderId);
+
+        // payment call
+        return fetch("http://localhost:3000/api/payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount: 200 })
+        });
+    })
+    .then(res => res.json())
+    .then(pay => {
+        alert("Payment Status: " + pay.status);
+    });
+}
+</script>
+
+</body>
+</html>

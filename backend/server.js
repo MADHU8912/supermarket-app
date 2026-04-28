@@ -6,20 +6,36 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// IMPORT ROUTES
-const authRoutes = require("./routes/authRoutes");
-const productRoutes = require("./routes/productRoutes");
-const orderRoutes = require("./routes/orderRoutes");
+// 🧠 fake database
+let orders = [];
 
-// REGISTER ROUTES
-app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/orders", orderRoutes);
-
+// 🏠 home route
 app.get("/", (req, res) => {
-  res.send("Supermarket Backend Running");
+    res.send("Supermarket Backend Running");
 });
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+// 🛒 order API
+app.post("/api/order", (req, res) => {
+    const order = {
+        id: "ORD" + Date.now(),
+        items: req.body,
+        status: "PLACED"
+    };
+
+    orders.push(order);
+
+    res.json(order);
+});
+
+// 👨‍💼 ADMIN API
+app.get("/api/admin/orders", (req, res) => {
+    res.json({
+        totalOrders: orders.length,
+        orders: orders
+    });
+});
+
+// 🚀 server start
+app.listen(3000, () => {
+    console.log("Backend running on port 3000");
 });

@@ -1,14 +1,14 @@
-const mongoose = require("mongoose");
+app.post("/api/order", (req, res) => {
+    const order = {
+        id: "ORD" + Date.now(),
+        items: req.body,
+        status: "PLACED"
+    };
 
-const orderSchema = new mongoose.Schema({
-  items: Array,
-  total: Number,
+    orders.push(order);
 
-  // ✅ PAYMENT STATUS FIELD
-  status: {
-    type: String,
-    default: "Pending" // Pending | Paid | Failed
-  }
+    res.json({
+        message: "Order placed successfully",
+        order
+    });
 });
-
-module.exports = mongoose.model("Order", orderSchema);
