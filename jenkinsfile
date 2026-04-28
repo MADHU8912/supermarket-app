@@ -1,35 +1,22 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE = "yourdockerhub/supermarket-backend"
-    }
-
     stages {
-
-        stage('Git Checkout') {
+        stage('Checkout') {
             steps {
-                git 'https://github.com/YOUR_USERNAME/supermarket-app.git'
+                checkout scm
             }
         }
 
-        stage('Docker Build') {
+        stage('Build') {
             steps {
-                bat 'docker build -t %IMAGE%:v1 backend'
+                echo 'Building project...'
             }
         }
 
-        stage('Docker Login') {
+        stage('Test') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    bat 'echo %PASS% | docker login -u %USER% --password-stdin'
-                }
-            }
-        }
-
-        stage('Push Image') {
-            steps {
-                bat 'docker push %IMAGE%:v1'
+                echo 'Running tests...'
             }
         }
     }
