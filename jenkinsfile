@@ -1,43 +1,51 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE = "nikhil123/supermarket"
+        TAG = "latest"
+    }
+
     stages {
 
         stage('Checkout') {
             steps {
-                echo "🔄 Checking out code..."
                 checkout scm
+                echo "✅ Code checked out"
             }
         }
 
-        stage('Build') {
-            steps {
-                echo "📦 Building project..."
-                sh 'echo Build stage running'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo "🧪 Running tests..."
-                sh 'echo Test stage running'
-            }
-        }
-
-        stage('Docker Build') {
+        stage('Build Docker Image') {
             steps {
                 echo "🐳 Building Docker image..."
-                sh 'docker build -t supermarket-app .'
+                sh "docker build -t $IMAGE:$TAG ./backend"
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                    echo $PASS | docker login -u $USER --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                echo "📤 Pushing image..."
+                sh "docker push $IMAGE:$TAG"
             }
         }
     }
 
     post {
         success {
-            echo "✅ Pipeline completed successfully!"
+            echo "🎉 CI/CD SUCCESSFUL"
         }
         failure {
-            echo "❌ Pipeline failed!"
+            echo "❌ PIPELINE FAILED"
         }
     }
 }
