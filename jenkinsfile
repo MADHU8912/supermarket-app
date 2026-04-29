@@ -11,41 +11,41 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                echo "✅ Code checked out"
+                echo "Code checked out"
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "🐳 Building Docker image..."
-                sh "docker build -t $IMAGE:$TAG ./backend"
+                echo "Building Docker image..."
+                bat "docker build -t %IMAGE%:%TAG% ./backend"
             }
         }
 
         stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                    echo $PASS | docker login -u $USER --password-stdin
-                    '''
+                    bat """
+                    echo %PASS% | docker login -u %USER% --password-stdin
+                    """
                 }
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                echo "📤 Pushing image..."
-                sh "docker push $IMAGE:$TAG"
+                echo "Pushing image..."
+                bat "docker push %IMAGE%:%TAG%"
             }
         }
     }
 
     post {
         success {
-            echo "🎉 CI/CD SUCCESSFUL"
+            echo "CI/CD SUCCESSFUL"
         }
         failure {
-            echo "❌ PIPELINE FAILED"
+            echo "PIPELINE FAILED"
         }
     }
 }
