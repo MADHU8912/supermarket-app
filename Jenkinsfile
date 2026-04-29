@@ -3,11 +3,12 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "nikhil123/supermarket:latest"
+        CONTAINER_NAME = "supermarket-container"
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
                 checkout scm
             }
@@ -45,20 +46,27 @@ pipeline {
             }
         }
 
-        stage('Deploy (Local Docker Run)') {
+        stage('Stop Old Container') {
             steps {
                 bat '''
-                docker stop supermarket-container || exit 0
-                docker rm supermarket-container || exit 0
-                docker run -d -p 5000:5000 --name supermarket-container %DOCKER_IMAGE%
+                docker stop %CONTAINER_NAME% || exit 0
+                docker rm %CONTAINER_NAME% || exit 0
                 '''
             }
         }
 
-        stage('Deploy to Render (Manual Trigger)') {
+        stage('Deploy (Local Docker Run)') {
             steps {
-                echo '👉 Now deploy in Render using this Docker image'
-                echo 'Image: nikhil123/supermarket:latest'
+                bat '''
+                docker run -d -p 5000:5000 --name %CONTAINER_NAME% %DOCKER_IMAGE%
+                '''
+            }
+        }
+
+        stage('Deploy to Render (Manual Step)') {
+            steps {
+                echo "Go to Render and deploy using image:"
+                echo "nikhil123/supermarket:latest"
             }
         }
     }
