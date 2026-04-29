@@ -2,21 +2,21 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "nikhil123/supermarket:latest"
-        CONTAINER_NAME = "supermarket-container"
+        IMAGE = "nikhil123/supermarket:latest"
+        RENDER_HOOK = "https://api.render.com/deploy/srv-xxxxx?key=xxxx"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Image') {
             steps {
-                bat 'docker build -t %DOCKER_IMAGE% backend'
+                bat 'docker build -t %IMAGE% backend'
             }
         }
 
@@ -24,11 +24,11 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
                 )]) {
                     bat '''
-                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    echo %PASS% | docker login -u %USER% --password-stdin
                     '''
                 }
             }
@@ -36,47 +36,25 @@ pipeline {
 
         stage('Push Image') {
             steps {
-                bat 'docker push %DOCKER_IMAGE%'
+                bat 'docker push %IMAGE%'
             }
         }
 
-        stage('Docker Pull (Verification)') {
-            steps {
-                bat 'docker pull %DOCKER_IMAGE%'
-            }
-        }
-
-        stage('Stop Old Container') {
+        stage('Trigger Render Deploy') {
             steps {
                 bat '''
-                docker stop %CONTAINER_NAME% || exit 0
-                docker rm %CONTAINER_NAME% || exit 0
+                curl -X POST %RENDER_HOOK%
                 '''
-            }
-        }
-
-        stage('Deploy (Local Docker Run)') {
-            steps {
-                bat '''
-                docker run -d -p 5000:5000 --name %CONTAINER_NAME% %DOCKER_IMAGE%
-                '''
-            }
-        }
-
-        stage('Deploy to Render (Manual Step)') {
-            steps {
-                echo "Go to Render and deploy using image:"
-                echo "nikhil123/supermarket:latest"
             }
         }
     }
 
     post {
         success {
-            echo '✅ PIPELINE SUCCESS'
+            echo '🚀 FULL AUTO DEPLOY SUCCESS'
         }
         failure {
-            echo '❌ PIPELINE FAILED'
+            echo '❌ FAILED'
         }
     }
 }
