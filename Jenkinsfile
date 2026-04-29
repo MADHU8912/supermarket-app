@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE = "nikhil123/supermarket"
-        TAG = "latest"
-        CONTAINER = "supermarket-container"
+        DOCKER_IMAGE = "nikhil123/supermarket:latest"
     }
 
     stages {
@@ -15,24 +13,21 @@ pipeline {
             }
         }
 
-        stage('Check Files') {
-            steps {
-                bat "dir"
-                bat "dir backend"
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
-                bat "docker build -t ${IMAGE}:${TAG} backend"
+                bat 'docker build -t %DOCKER_IMAGE% backend'
             }
         }
 
         stage('Docker Login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
                     bat '''
-                    echo %PASS% | docker login -u %USER% --password-stdin
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
                     '''
                 }
             }
@@ -40,31 +35,40 @@ pipeline {
 
         stage('Push Image') {
             steps {
-                bat "docker push ${IMAGE}:${TAG}"
+                bat 'docker push %DOCKER_IMAGE%'
+            }
+        }
+
+        stage('Docker Pull (Verification)') {
+            steps {
+                bat 'docker pull %DOCKER_IMAGE%'
             }
         }
 
         stage('Deploy (Local Docker Run)') {
             steps {
-                // Stop old container if exists
-                bat "docker stop ${CONTAINER} || exit 0"
-                bat "docker rm ${CONTAINER} || exit 0"
+                bat '''
+                docker stop supermarket-container || exit 0
+                docker rm supermarket-container || exit 0
+                docker run -d -p 5000:5000 --name supermarket-container %DOCKER_IMAGE%
+                '''
+            }
+        }
 
-                // Pull latest image
-                bat "docker pull ${IMAGE}:${TAG}"
-
-                // Run new container
-                bat "docker run -d -p 5000:5000 --name ${CONTAINER} ${IMAGE}:${TAG}"
+        stage('Deploy to Render (Manual Trigger)') {
+            steps {
+                echo '👉 Now deploy in Render using this Docker image'
+                echo 'Image: nikhil123/supermarket:latest'
             }
         }
     }
 
     post {
         success {
-            echo "✅ CI/CD SUCCESSFUL 🚀"
+            echo '✅ PIPELINE SUCCESS'
         }
         failure {
-            echo "❌ PIPELINE FAILED"
+            echo '❌ PIPELINE FAILED'
         }
     }
 }
