@@ -6,46 +6,9 @@ pipeline {
         TAG = "latest"
     }
 
-    stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-                echo "Code checked out"
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                echo "Building Docker image..."
-                bat "docker build -t ${IMAGE}:${TAG} backend"
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    bat '''
-                    docker login -u %USER% -p %PASS%
-                    '''
-                }
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                echo "Pushing image..."
-                bat "docker push ${IMAGE}:${TAG}"
-            }
-        }
-    }
-
-    post {
-        success {
-            echo "CI/CD SUCCESSFUL 🚀"
-        }
-        failure {
-            echo "PIPELINE FAILED ❌"
-        }
+    stage('Test Docker') {
+    steps {
+        bat "docker --version"
+        bat "docker ps"
     }
 }
