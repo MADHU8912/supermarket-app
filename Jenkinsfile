@@ -1,33 +1,15 @@
 pipeline {
     agent any
 
-    stages {
+    environment {
+        PATH = "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+    }
 
+    stages {
         stage('Build Image') {
             steps {
+                sh 'docker --version'
                 sh 'docker build -t nikhilabba12/supermarket-app .'
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    '''
-                }
-            }
-        }
-
-        stage('Push Image') {
-            steps {
-                sh 'docker push nikhilabba12/supermarket-app'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sh 'echo "Trigger deploy here"'
             }
         }
     }
