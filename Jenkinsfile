@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     stages {
+
         stage('Build Image') {
             steps {
-                sh 'docker build -t your-dockerhub-username/app-name .'
+                sh 'docker build -t nikhilabba12/supermarket-app .'
             }
         }
 
@@ -20,7 +21,13 @@ pipeline {
 
         stage('Push Image') {
             steps {
-                sh 'docker push your-dockerhub-username/app-name'
+                sh 'docker push nikhilabba12/supermarket-app'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'echo "Trigger deploy here"'
             }
         }
     }
